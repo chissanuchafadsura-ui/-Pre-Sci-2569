@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ประกาศผลการทดสอบ PRE-SCIENCE 2569</title>
+    
+    <!-- ตั้งค่า Favicon ตามที่ระบุ -->
+    <link rel="icon" type="image/png" href="https://score.phukhieo.ac.th/helper/img/pklogo.png">
+    
+    <!-- โหลดฟอนต์ Kanit จาก Google Fonts เพื่อความสวยงามและเป็นทางการ -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- โหลด Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- โหลด Supabase JS Client -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+    <!-- ตั้งค่า Tailwind Theme และ CSS เพิ่มเติม -->
+    <style>
+        body {
+            font-family: 'Kanit', sans-serif;
+            background-color: #fcfcfc; /* พื้นหลังสีขาวสบายตา */
+        }
+        
+        /* เอฟเฟกต์ฟุ้งสีขาว 50% รอบโลโก้ตามที่ต้องการ */
+        .logo-glow {
+            filter: drop-shadow(0 0 15px rgba(255, 255, 255, 0.5));
+            /* เพิ่มเงาสีชมพูอ่อนๆ บางๆ ให้เข้ากับธีมเนื่องจากพื้นหลังเป็นสีขาว */
+            box-shadow: 0 0 20px rgba(236, 72, 153, 0.1);
+        }
+
+        /* รูปแบบกล่องคะแนน */
+        .score-card {
+            background: linear-gradient(135deg, #ffffff 0%, #fff0f6 100%);
+            box-shadow: 0 10px 25px -5px rgba(236, 72, 153, 0.1), 0 8px 10px -6px rgba(236, 72, 153, 0.1);
+        }
+
+        /* ซ่อนหน้าต่างๆ ตอนเริ่มต้น */
+        .hidden-section {
+            display: none;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col text-gray-800">
+
+    <!-- ส่วนหัวพื้นหลังสีขาว ลากยาวซ้ายขวา -->
+    <header class="bg-white w-full py-6 shadow-sm border-b border-pink-100 z-10 relative">
+        <div class="container mx-auto px-4 text-center flex flex-col items-center">
+            <img src="https://score.phukhieo.ac.th/helper/img/pklogo.png" 
+                 alt="โลโก้โรงเรียนภูเขียว" 
+                 class="w-24 h-24 object-contain rounded-full logo-glow bg-white p-1 mb-4">
+            <h1 class="text-2xl md:text-3xl font-bold text-pink-600 mb-1">
+                ประกาศผลการทดสอบ PRE - SCIENCE ประจำปีการศึกษา 2569
+            </h1>
+            <h2 class="text-lg md:text-xl font-medium text-gray-600">
+                โรงเรียนภูเขียว กลุ่มสาระการเรียนรู้วิทยาศาสตร์ และเทคโนโลยี
+            </h2>
+        </div>
+    </header>
+
+    <main class="flex-grow container mx-auto px-4 py-8 flex justify-center items-center">
+        
+        <!-- ==================== หน้า 1: เข้าสู่ระบบ ==================== -->
+        <div id="login-section" class="w-full max-w-md bg-white rounded-2xl shadow-lg border border-pink-50 p-8 transition-all">
+            <h3 class="text-xl font-semibold text-center text-pink-500 mb-6">เข้าสู่ระบบเพื่อดูผลสอบ</h3>
+            
+            <form id="login-form" class="space-y-5" onsubmit="event.preventDefault(); handleLogin();">
+                <div>
+                    <label for="id-national" class="block text-sm font-medium text-gray-700 mb-1">
+                        เลขบัตรประจำตัวประชาชน (13 หลัก)
+                    </label>
+                    <input type="text" id="id-national" required
+                           class="w-full px-4 py-3 rounded-xl border border-gray-300 focus:border-pink-400 focus:ring-2 focus:ring-pink-200 outline-none transition text-center text-lg tracking-wider"
+                           placeholder="#-####-#####-##-#"
+                           oninput="formatNationalID(this)">
+                </div>
+                
+                <div>
+                    <label for="id-student" class="block text-sm font-medium text-gray-700 mb-1">
+                        รหัสนักเรียน (5 หลัก)
+                    </label>
+                    <input type="text" id="id-student" required maxlength="5"
+                           class="w-full px-4 py-3 rounded-xl border border-gray-300 focus:border-pink-400 focus:ring-2 focus:ring-pink-200 outline-none transition text-center text-lg tracking-wider"
+                           placeholder="#####"
+                           oninput="this.value = this.value.replace(/[^0-9]/g, '')">
+                </div>
+
+                <div id="error-message" class="text-red-500 text-sm text-center hidden">
+                    ข้อมูลไม่ถูกต้อง หรือไม่พบข้อมูลในระบบ
+                </div>
+
+                <button type="submit" id="btn-submit"
+                        class="w-full bg-pink-500 hover:bg-pink-600 text-white font-semibold py-3 rounded-xl shadow-md hover:shadow-lg transition-all duration-200 transform hover:-translate-y-0.5">
+                    ตรวจสอบผลคะแนน
+                </button>
+            </form>
+        </div>
+
+        <!-- ==================== หน้า 2: แสดงผลคะแนน ==================== -->
+        <div id="result-section" class="hidden-section w-full max-w-2xl animate-fade-in-up">
+            
+            <!-- ปุ่มกลับ -->
+            <button onclick="logout()" class="mb-4 text-pink-500 hover:text-pink-700 font-medium flex items-center transition">
+                <svg class="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
+                กลับไปหน้าแรก
+            </button>
+
+            <!-- ข้อมูลนักเรียน -->
+            <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 mb-6">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <p class="text-sm text-gray-500">ชื่อ - สกุล</p>
+                        <p id="res-name" class="font-semibold text-lg text-gray-800">-</p>
+                    </div>
+                    <div>
+                        <p class="text-sm text-gray-500">รหัสนักเรียน</p>
+                        <p id="res-id-student" class="font-semibold text-lg text-gray-800">-</p>
+                    </div>
+                    <div>
+                        <p class="text-sm text-gray-500">ระดับชั้น</p>
+                        <p id="res-class" class="font-semibold text-lg text-gray-800">-</p>
+                    </div>
+                    <div>
+                        <p class="text-sm text-gray-500">เลขที่นั่งสอบ</p>
+                        <p id="res-roll" class="font-semibold text-lg text-gray-800">-</p>
+                    </div>
+                    <div class="md:col-span-2">
+                        <p class="text-sm text-gray-500">เลขบัตรประจำตัวประชาชน</p>
+                        <p id="res-id-national" class="font-semibold text-lg text-gray-800">-</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- กรอบคะแนน (สี่เหลี่ยมขอบมน) -->
+            <div class="score-card rounded-3xl border border-pink-200 p-8 text-center relative overflow-hidden">
+                <!-- ตกแต่งพื้นหลังนิดหน่อย -->
+                <div class="absolute top-0 right-0 -mr-8 -mt-8 w-32 h-32 rounded-full bg-pink-100 opacity-50 blur-2xl"></div>
+                
+                <h3 class="text-xl font-medium text-gray-600 mb-2 relative z-10">คะแนนที่ท่านสอบได้</h3>
+                
+                <!-- 6.1 คะแนนตัวเลขใหญ่ -->
+                <div class="text-6xl md:text-8xl font-bold text-pink-600 mb-2 drop-shadow-sm relative z-10">
+                    <span id="res-score">0</span><span class="text-3xl md:text-5xl text-pink-400">/60</span>
+                </div>
+                
+                <!-- 6.2 รางวัล ตัวขนาดกลาง -->
+                <div id="res-reward-container" class="mt-4 mb-8 inline-block bg-pink-500 text-white px-6 py-2 rounded-full text-lg md:text-xl font-medium shadow-sm relative z-10">
+                    <span id="res-reward">-</span>
+                </div>
+
+                <!-- 6.3 - 6.6 ข้อมูลสถิติ ตัวเล็ก -->
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-4 border-t border-pink-100 pt-6 mt-2 relative z-10">
+                    <div class="text-center">
+                        <p class="text-xs text-gray-500 mb-1">คะแนนสูงสุด</p>
+                        <p id="stat-max" class="text-lg font-semibold text-gray-700">-</p>
+                    </div>
+                    <div class="text-center">
+                        <p class="text-xs text-gray-500 mb-1">คะแนนต่ำสุด</p>
+                        <p id="stat-min" class="text-lg font-semibold text-gray-700">-</p>
+                    </div>
+                    <div class="text-center">
+                        <p class="text-xs text-gray-500 mb-1">คะแนนเฉลี่ย</p>
+                        <p id="stat-avg" class="text-lg font-semibold text-gray-700">-</p>
+                    </div>
+                    <div class="text-center">
+                        <p class="text-xs text-gray-500 mb-1">ส่วนเบี่ยงเบนมาตรฐาน (SD)</p>
+                        <p id="stat-sd" class="text-lg font-semibold text-gray-700">-</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <footer class="bg-white border-t border-gray-100 py-6 mt-auto text-center">
+        <p class="text-sm text-gray-500 font-medium">
+            &copy;PK SCI – PRE - SCIENCE 2026 ALLRIGHT RESERVED
+        </p>
+        <a href="https://www.instagram.com/big_chissanucha_pk?igsh=MWNvZGJydTk1cGJh" target="_blank" 
+           class="text-sm text-pink-400 hover:text-pink-600 font-semibold transition mt-1 inline-block">
+            Dev_Chissanucha Fadsura
+        </a>
+    </footer>
+
+    <script>
+        // ---------------------------------------------------------
+        // 1. ตั้งค่าการเชื่อมต่อฐานข้อมูล Supabase
+        // ---------------------------------------------------------
+        const SUPABASE_URL = 'https://gckvqpebyoepfivvzeef.supabase.co';
+        const SUPABASE_KEY = 'sb_publishable_gaxYIpTxMxqEP-2EkJQ30w_XQGjG-20'; // API Key ตามที่ระบุ
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+        const TABLE_NAME = 'data'; // ชื่อแผ่นงาน/Table
+
+        // ---------------------------------------------------------
+        // 2. ฟังก์ชันจัดรูปแบบเลขบัตรประชาชนอัตโนมัติ
+        // ---------------------------------------------------------
+        function formatNationalID(input) {
+            // ลบตัวอักษรที่ไม่ใช่ตัวเลขออก
+            let value = input.value.replace(/\D/g, '');
+            
+            // จำกัดจำนวน 13 หลัก
+            if (value.length > 13) value = value.substring(0, 13);
+            
+            // เติมขีด (-) ตามรูปแบบ #-####-#####-##-#
+            let formatted = '';
+            for (let i = 0; i < value.length; i++) {
+                if (i === 1 || i === 5 || i === 10 || i === 12) {
+                    formatted += '-';
+                }
+                formatted += value[i];
+            }
+            
+            input.value = formatted;
+        }
+
+        // ---------------------------------------------------------
+        // 3. ฟังก์ชันหลักสำหรับเข้าสู่ระบบและตรวจสอบข้อมูล
+        // ---------------------------------------------------------
+        async function handleLogin() {
+            const idNational = document.getElementById('id-national').value;
+            const idStudent = document.getElementById('id-student').value;
+            const errorMsg = document.getElementById('error-message');
+            const btnSubmit = document.getElementById('btn-submit');
+
+            // รีเซ็ตข้อความแจ้งเตือน และเปลี่ยนสถานะปุ่ม
+            errorMsg.classList.add('hidden');
+            btnSubmit.innerHTML = `<svg class="animate-spin h-5 w-5 mr-3 inline" viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> กำลังตรวจสอบข้อมูล...`;
+            btnSubmit.disabled = true;
+
+            try {
+                console.log("เริ่มค้นหา: บัตรประชาชน =", idNational, ", รหัสนักเรียน =", idStudent);
+
+                // ค้นหาแบบที่ 1: ส่งข้อมูลตรงๆ ตามที่กรอก (มีขีด)
+                let { data, error } = await supabase
+                    .from(TABLE_NAME)
+                    .select('*')
+                    .eq('ID National', idNational)
+                    .eq('ID Student', idStudent);
+
+                if (error) {
+                    console.error("Supabase Query Error (รอบ 1):", error);
+                    throw error;
+                }
+
+                // ค้นหาแบบที่ 2: ถ้าไม่เจอข้อมูล ลองค้นหาแบบเอาขีด (-) ออก เผื่อในฐานข้อมูลบันทึกเป็นตัวเลขล้วน
+                if (!data || data.length === 0) {
+                    const rawIdNational = idNational.replace(/-/g, '');
+                    console.log("ไม่พบแบบมีขีด ลองค้นหาแบบไม่มีขีด:", rawIdNational);
+                    
+                    const res2 = await supabase
+                        .from(TABLE_NAME)
+                        .select('*')
+                        .eq('ID National', rawIdNational)
+                        .eq('ID Student', idStudent);
+                        
+                    data = res2.data;
+                    
+                    if (res2.error) {
+                         console.error("Supabase Query Error (รอบ 2):", res2.error);
+                         throw res2.error;
+                    }
+                }
+
+                // ถ้ายังไม่เจอข้อมูลอีก
+                if (!data || data.length === 0) {
+                    throw new Error('NOT_FOUND');
+                }
+
+                const userData = data[0]; // ดึงข้อมูลแถวแรกที่เจอ
+                console.log("พบข้อมูลสำเร็จ:", userData);
+
+                // หากพบข้อมูล ให้ไปดึงข้อมูลสถิติของทั้งระดับชั้น
+                await calculateStatistics();
+                
+                // นำข้อมูลผู้ใช้ไปแสดงผล
+                displayResult(userData);
+
+            } catch (error) {
+                // จัดการ Error รูปแบบต่างๆ
+                errorMsg.classList.remove('hidden');
+                console.error("Login Fail Reason:", error);
+                
+                if (error.message === 'NOT_FOUND') {
+                    errorMsg.innerText = "ไม่พบข้อมูลที่ตรงกัน โปรดตรวจสอบรหัสอีกครั้ง";
+                } else if (error.message && error.message.includes('fetch')) {
+                     // มักจะเกิดจากการตั้งค่า RLS ใน Supabase บล็อกไว้
+                     errorMsg.innerText = "ไม่สามารถเชื่อมต่อฐานข้อมูลได้ (อาจติดสิทธิ์ RLS)";
+                } else {
+                     errorMsg.innerText = "เกิดข้อผิดพลาดในการดึงข้อมูล";
+                }
+
+            } finally {
+                // คืนค่าปุ่มกลับเป็นปกติ
+                btnSubmit.innerHTML = 'ตรวจสอบผลคะแนน';
+                btnSubmit.disabled = false;
+            }
+        }
+
+        // ---------------------------------------------------------
+        // 4. ฟังก์ชันดึงคะแนนทั้งหมดมาคำนวณสถิติ (Max, Min, Mean, SD)
+        // ---------------------------------------------------------
+        async function calculateStatistics() {
+            try {
+                // ดึงแค่คอลัมน์ Score มาเพื่อลดขนาดข้อมูล
+                const { data, error } = await supabase
+                    .from(TABLE_NAME)
+                    .select('Score');
+                
+                if (error) throw error;
+
+                // แปลงข้อมูลเป็นอาร์เรย์ของตัวเลข
+                const scores = data.map(item => parseFloat(item.Score)).filter(score => !isNaN(score));
+
+                if (scores.length > 0) {
+                    // คำนวณ Max, Min
+                    const max = Math.max(...scores);
+                    const min = Math.min(...scores);
+                    
+                    // คำนวณ Mean (ค่าเฉลี่ย)
+                    const sum = scores.reduce((a, b) => a + b, 0);
+                    const mean = sum / scores.length;
+
+                    // คำนวณ SD (ส่วนเบี่ยงเบนมาตรฐาน - Sample SD)
+                    const variance = scores.reduce((a, b) => a + Math.pow(b - mean, 2), 0) / (scores.length > 1 ? scores.length - 1 : 1);
+                    const sd = Math.sqrt(variance);
+
+                    // นำข้อมูลไปแสดงผลบนหน้าจอ (ปัดเศษทศนิยม 2 ตำแหน่ง)
+                    document.getElementById('stat-max').innerText = max;
+                    document.getElementById('stat-min').innerText = min;
+                    document.getElementById('stat-avg').innerText = mean.toFixed(2);
+                    document.getElementById('stat-sd').innerText = sd.toFixed(2);
+                }
+            } catch (err) {
+                console.error("Stat Error: ", err);
+            }
+        }
+
+        // ---------------------------------------------------------
+        // 5. ฟังก์ชันแสดงผลคะแนนและสลับหน้าต่าง
+        // ---------------------------------------------------------
+        function displayResult(userData) {
+            // ซ่อนหน้า Login
+            document.getElementById('login-section').style.display = 'none';
+            // แสดงหน้า Result
+            document.getElementById('result-section').style.display = 'block';
+
+            // ใส่ข้อมูลลงใน DOM
+            document.getElementById('res-name').innerText = userData['Name'] || '-';
+            document.getElementById('res-id-student').innerText = userData['ID Student'] || '-';
+            document.getElementById('res-class').innerText = userData['Class'] || '-';
+            document.getElementById('res-roll').innerText = userData['ID Roll'] || '-';
+            document.getElementById('res-id-national').innerText = userData['ID National'] || '-';
+            
+            document.getElementById('res-score').innerText = userData['Score'] || '0';
+            
+            // แสดงรางวัล
+            const rewardText = userData['Reward'] || 'ไม่มีรางวัล';
+            document.getElementById('res-reward').innerText = rewardText;
+            
+            // ปรับสีกล่องรางวัลตามเนื้อหา (ถ้าไม่มีรางวัลให้เป็นสีเทา)
+            const rewardBox = document.getElementById('res-reward-container');
+            if(rewardText === '-' || rewardText === '' || rewardText === 'ไม่มีรางวัล') {
+                rewardBox.className = "mt-4 mb-8 inline-block bg-gray-400 text-white px-6 py-2 rounded-full text-lg md:text-xl font-medium shadow-sm relative z-10";
+            } else {
+                rewardBox.className = "mt-4 mb-8 inline-block bg-pink-500 text-white px-6 py-2 rounded-full text-lg md:text-xl font-medium shadow-sm relative z-10";
+            }
+        }
+
+        // ---------------------------------------------------------
+        // 6. ฟังก์ชันออกจากระบบ / กลับไปหน้าแรก
+        // ---------------------------------------------------------
+        function logout() {
+            // ล้างข้อมูลในช่องกรอก
+            document.getElementById('login-form').reset();
+            document.getElementById('error-message').classList.add('hidden');
+            
+            // สลับหน้าจอ
+            document.getElementById('result-section').style.display = 'none';
+            document.getElementById('login-section').style.display = 'block';
+        }
+    </script>
+</body>
+</html>
